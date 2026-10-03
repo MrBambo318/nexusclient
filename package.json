@@ -1,0 +1,48 @@
+{
+  "name": "nexus-client",
+  "version": "1.0.1",
+  "description": "Nexus Client - wlasny launcher do Minecrafta",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "msmc": "^5.0.5",
+    "minecraft-launcher-core": "^3.18.2",
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "electron": "^44.4.3",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.mrbambo.nexusclient",
+    "productName": "Nexus Client",
+    "artifactName": "${productName} Setup.${ext}",
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "MrBambo318",
+      "repo": "nexusclient"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "assets/**/*",
+      "node_modules/**/*"
+    ]
+  }
+}

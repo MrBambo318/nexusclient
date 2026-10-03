@@ -1,0 +1,33 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('nexus', {
+  loginMicrosoft: () => ipcRenderer.invoke('login-microsoft'),
+  checkLogin: () => ipcRenderer.invoke('check-login'),
+  getAccounts: () => ipcRenderer.invoke('get-accounts'),
+  switchAccount: (uuid) => ipcRenderer.invoke('switch-account', uuid),
+  removeAccount: (uuid) => ipcRenderer.invoke('remove-account', uuid),
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
+  detectJava: () => ipcRenderer.invoke('detect-java'),
+  browseJava: () => ipcRenderer.invoke('browse-java'),
+  getLoaderVersions: (loader) => ipcRenderer.invoke('get-loader-versions', loader),
+  getSelectedVersion: () => ipcRenderer.invoke('get-selected-version'),
+  setSelectedVersion: (sel) => ipcRenderer.invoke('set-selected-version', sel),
+  getProfiles: () => ipcRenderer.invoke('get-profiles'),
+  createProfile: (data) => ipcRenderer.invoke('create-profile', data),
+  renameProfile: (profileId, name) => ipcRenderer.invoke('rename-profile', { profileId, name }),
+  deleteProfile: (profileId) => ipcRenderer.invoke('delete-profile', profileId),
+  toggleItem: (profileId, itemId) => ipcRenderer.invoke('toggle-item', { profileId, itemId }),
+  getItemVersions: (profileId, itemId) => ipcRenderer.invoke('get-item-versions', { profileId, itemId }),
+  setItemVersion: (profileId, itemId, versionId) => ipcRenderer.invoke('set-item-version', { profileId, itemId, versionId }),
+  launchGame: (profileId) => ipcRenderer.invoke('launch-game', { profileId }),
+  onUpdateReady: (callback) => ipcRenderer.on('update-ready', (event, data) => callback(data)),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  removeItem: (profileId, itemId) => ipcRenderer.invoke('remove-item', { profileId, itemId }),
+  searchContent: (params) => ipcRenderer.invoke('search-content', params),
+  installItem: (params) => ipcRenderer.invoke('install-item', params),
+  getCategories: (projectType) => ipcRenderer.invoke('get-categories', projectType),
+  pickProfileIcon: () => ipcRenderer.invoke('pick-profile-icon'),
+  listProfileDir: (profileId, relPath) => ipcRenderer.invoke('list-profile-dir', { profileId, relPath }),
+  onConsoleLog: (callback) => ipcRenderer.on('console-log', (event, line) => callback(line))
+});
