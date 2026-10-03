@@ -1,6 +1,6 @@
 {
   "name": "nexus-client",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nexus Client - wlasny launcher do Minecrafta",
   "main": "main.js",
   "scripts": {

@@ -654,6 +654,7 @@ button.cut:disabled:hover { background: var(--line); }
   <main class="stage" id="stage">
     <aside class="rail" id="rail">
       <button class="ritem" id="rHome"><span class="mk"></span><span class="txt"><b>Home</b></span></button>
+      <button class="ritem" id="rLocalHosting"><span class="mk"></span><span class="txt"><b>Local Hosting</b></span></button>
       <div class="rlabel">Profiles</div>
       <div class="rlist" id="rlist"></div>
       <button class="cut newp" id="newProfileBtn"><span class="in"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M7 1v12M1 7h12"/></svg>New profile</span></button>
@@ -1918,6 +1919,7 @@ document.addEventListener('click', () => $('menu').classList.remove('open'));
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') show('home'); });
 
 $('rHome').addEventListener('click', () => show('home'));
+$('rLocalHosting').addEventListener('click', () => showNote("Local Hosting isn't built yet. It's coming in a future update."));
 $('newProfileBtn').addEventListener('click', openNewProfileDialog);
 $('npClose').addEventListener('click', () => $('newProfileOverlay').classList.remove('open'));
 $('npCancel').addEventListener('click', () => $('newProfileOverlay').classList.remove('open'));
