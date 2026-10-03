@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nexus Client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #07060b;
+  --s1: #0e0b16;
+  --s2: #16121f;
+  --line: #262038;
+  --line2: #3a3155;
+  --v: #8a3dff;
+  --v2: #b795ff;
+  --vd: #34186e;
+  --tx: #ece9f5;
+  --mut: #8078a0;
+  --g: #3be07b;
+  --g2: #63f096;
+  --red: #ff6b7a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Barlow', 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+button, input { font-family: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, .sw:focus-visible {
+  outline: 2px solid var(--v2);
+  outline-offset: 2px;
+}
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line2); }
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 56px 1fr 26px;
+  position: relative;
+}
+
+.cut {
+  --c: 10px;
+  --ci: calc(var(--c) - .59px);
+  position: relative;
+  display: block;
+  background: var(--line);
+  padding: 1px;
+  border: 0;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+.cut > .in {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  background: var(--s1);
+  clip-path: polygon(var(--ci) 0, 100% 0, 100% calc(100% - var(--ci)), calc(100% - var(--ci)) 100%, 0 100%, 0 var(--ci));
+}
+button.cut { cursor: pointer; text-align: left; }
+button.cut:hover { background: var(--v); }
+button.cut:disabled { opacity: .6; cursor: default; }
+button.cut:disabled:hover { background: var(--line); }
+
+.top {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--s1);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 11px; }
+.mark { width: 32px; height: 32px; background: url(assets/mark-icon.webp) center / contain no-repeat; mix-blend-mode: screen; }
+.word { font: 700 18px 'Chakra Petch', sans-serif; letter-spacing: .02em; }
+.word span { font-weight: 500; color: var(--v2); margin-left: 6px; }
+.tools { display: flex; align-items: center; gap: 10px; }
+.err { font-size: 13px; color: var(--red); max-width: 280px; text-align: right; line-height: 1.2; }
+
+.tool { --c: 8px; width: 38px; height: 38px; }
+.tool .in { justify-content: center; color: var(--mut); }
+.tool:hover .in { color: var(--tx); }
+.tool svg { width: 18px; height: 18px; }
+.updatebtn { position: relative; }
+.updatebtn .in { color: var(--v2); }
+.updatebtn:hover .in { color: var(--v); }
+.updatebtn .dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--v2);
+  box-shadow: 0 0 0 0 rgba(183, 149, 255, .7);
+  animation: updatepulse 1.8s infinite;
+}
+@keyframes updatepulse {
+  0% { box-shadow: 0 0 0 0 rgba(183, 149, 255, .55); }
+  70% { box-shadow: 0 0 0 8px rgba(183, 149, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(183, 149, 255, 0); }
+}
+
+.signin { --c: 9px; height: 38px; display: none; }
+.signin .in { gap: 10px; padding: 0 18px 0 14px; font-size: 14px; font-weight: 600; }
+.ms { width: 14px; height: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+.ms i:nth-child(1) { background: #f35325; }
+.ms i:nth-child(2) { background: #81bc06; }
+.ms i:nth-child(3) { background: #05a6f0; }
+.ms i:nth-child(4) { background: #ffba08; }
+
+.acctwrap { position: relative; display: none; }
+.acct { --c: 9px; height: 42px; }
+.acct .in { gap: 10px; padding: 0 12px 0 6px; }
+.head { display: block; width: 30px; height: 30px; flex-shrink: 0; image-rendering: pixelated; background: var(--s2); }
+.head.sm { width: 24px; height: 24px; }
+.who { display: flex; flex-direction: column; line-height: 1.15; }
+.who b { font: 600 14.5px 'Chakra Petch', sans-serif; }
+.who em { font-style: normal; font-size: 12px; color: var(--mut); }
+.who em::before { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--g); margin-right: 6px; }
+.chev { width: 12px; height: 12px; color: var(--mut); margin-left: 4px; }
+
+.menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 270px;
+  background: var(--s1);
+  border: 1px solid var(--line2);
+  padding: 6px;
+}
+.menu.open { display: block; }
+.mi { display: flex; align-items: center; gap: 10px; padding: 9px 10px; font-size: 14px; cursor: pointer; }
+.mi:hover { background: var(--s2); }
+.mi.on { background: var(--s2); box-shadow: inset 3px 0 0 var(--v); cursor: default; }
+.mi .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mi .tag { font-size: 12px; color: var(--mut); }
+.mi .rm { display: flex; padding: 4px; color: var(--mut); }
+.mi .rm:hover { color: var(--red); }
+.mi .rm svg { width: 12px; height: 12px; }
+.mi.add { color: var(--v2); margin-top: 4px; border-top: 1px solid var(--line); }
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.stage.has-rail { grid-template-columns: 250px 1fr; }
+.rail {
+  display: none;
+  flex-direction: column;
+  background: var(--s1);
+  border-right: 1px solid var(--line);
+  padding: 14px 0 16px;
+  min-height: 0;
+  overflow: hidden;
+}
+.stage.has-rail .rail { display: flex; }
+.ritem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-left: 3px solid transparent;
+  padding: 10px 18px 10px 15px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--mut);
+}
+.ritem:hover { background: var(--s2); color: var(--tx); }
+.ritem.on { background: var(--s2); border-left-color: var(--v); color: var(--tx); }
+.ritem .mk { width: 34px; height: 34px; background: url(assets/mark-icon.webp) center / contain no-repeat; mix-blend-mode: screen; flex-shrink: 0; }
+#rHome .mk { background-image: url(assets/home-art.webp); }
+.ritem b { display: block; font: 600 15px 'Chakra Petch', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ritem small { display: block; font-size: 12.5px; color: var(--mut); margin-top: 1px; }
+.ritem .txt { min-width: 0; }
+.rlabel { padding: 20px 18px 8px; font-size: 13px; color: var(--mut); }
+.rlist { flex: 1; overflow-y: auto; min-height: 0; }
+.rempty { padding: 6px 18px; font-size: 13.5px; line-height: 1.45; color: var(--mut); }
+.newp { --c: 10px; margin: 12px 16px 0; height: 42px; flex-shrink: 0; }
+.newp .in { justify-content: center; gap: 8px; font-size: 14.5px; font-weight: 600; color: var(--v2); }
+.newp svg { width: 14px; height: 14px; }
+
+.ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font: 700 15px 'Chakra Petch', sans-serif;
+  color: #fff;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.ico { width: 34px; height: 34px; }
+.ico.lg { width: 76px; height: 76px; font-size: 32px; clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+.ico.md { width: 56px; height: 56px; font-size: 22px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.ico img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ico.nmark { background: none; clip-path: none; }
+.ico.nmark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+.pane { position: relative; min-width: 0; overflow: hidden; }
+.pane .screen { position: absolute; inset: 0; display: none; }
+.pane .screen.on { display: flex; }
+
+.prof, .brw { width: 100%; display: flex; flex-direction: column; min-height: 0; }
+.phead { display: flex; align-items: center; gap: 20px; padding: 22px 28px 20px; border-bottom: 1px solid var(--line); }
+.pinfo { flex: 1; min-width: 0; }
+.pinfo h1 { margin: 0; font: 700 30px/1.1 'Chakra Petch', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rename { display: none; width: 100%; background: none; border: 0; border-bottom: 2px solid var(--v); outline: 0; color: var(--tx); font: 700 30px/1.1 'Chakra Petch', sans-serif; padding: 0 0 2px; }
+.pmeta { display: flex; align-items: center; margin-top: 8px; font-size: 14.5px; color: var(--mut); }
+.pmeta span { padding: 0 14px; border-left: 1px solid var(--line2); }
+.pmeta span:first-child { padding-left: 0; border-left: 0; }
+.pmeta b { color: var(--tx); font-weight: 600; }
+.pact { display: flex; align-items: center; gap: 10px; position: relative; }
+.playb { --c: 12px; height: 46px; width: 132px; border: 0; background: var(--g); color: #04210f; font: 700 19px 'Chakra Petch', sans-serif; cursor: pointer; clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)); }
+.playb:hover { background: var(--g2); }
+.playb:disabled, .playb:disabled:hover { background: var(--s2); color: var(--mut); cursor: not-allowed; }
+.pmenu { display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 190px; background: var(--s1); border: 1px solid var(--line2); padding: 6px; z-index: 8; }
+.pmenu.open { display: block; }
+.pmenu div { padding: 9px 10px; font-size: 14px; cursor: pointer; }
+.pmenu div:hover { background: var(--s2); }
+.pmenu div.danger { color: var(--red); }
+
+.pbody { flex: 1; overflow-y: auto; padding: 18px 28px 24px; min-height: 0; }
+.ptabs { display: flex; gap: 26px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+.ptabs button { background: none; border: 0; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--mut); cursor: pointer; border-bottom: 2px solid transparent; }
+.ptabs button:hover { color: var(--tx); }
+.ptabs button.on { color: var(--tx); border-bottom-color: var(--v); }
+.logbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.conlog {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  resize: none;
+  background: var(--s1);
+  border: 1px solid var(--line);
+  color: var(--tx);
+  font: 400 12.5px/1.6 'IBM Plex Mono', monospace;
+  padding: 14px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.conlog::placeholder { color: var(--mut); font-family: 'Barlow', sans-serif; font-size: 14px; }
+.conlog:focus { outline: 1px solid var(--v); }
+.fpath { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.fhome { width: 30px; height: 30px; flex-shrink: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.fhome:hover { filter: brightness(1.25); }
+.fhome img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.fpathname { font: 600 15px 'Chakra Petch', sans-serif; }
+.ftable { border: 1px solid var(--line); }
+.fthead, .frow { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 14px; padding: 10px 16px; align-items: center; }
+.fthead { font-size: 12px; color: var(--mut); border-bottom: 1px solid var(--line); background: var(--s1); }
+.frow { font-size: 13.5px; border-bottom: 1px solid var(--line); }
+.frow:last-child { border-bottom: 0; }
+.frow.isdir { cursor: pointer; }
+.frow.isdir:hover { background: var(--s1); }
+.frow span:not(.fname) { color: var(--mut); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.fname { display: flex; align-items: center; gap: 10px; color: var(--tx); font-family: 'Barlow', sans-serif; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ftype { width: 16px; height: 16px; flex-shrink: 0; color: var(--mut); }
+.frow.isdir .ftype { color: var(--v2); }.tb { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.itseg { display: flex; margin-bottom: 14px; }
+.itseg button { background: var(--s1); border: 1px solid var(--line); border-left-width: 0; padding: 0 16px; height: 38px; font-size: 14px; font-weight: 500; color: var(--mut); cursor: pointer; }
+.itseg button:first-child { border-left-width: 1px; }
+.itseg button.on { background: var(--vd); border-color: var(--v); color: var(--tx); }
+.itseg button i { font-style: normal; margin-left: 7px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; opacity: .7; }
+
+.thead2, .trow { display: grid; grid-template-columns: 1.5fr 1.3fr 96px; gap: 14px; align-items: center; }
+.thead2 { padding: 0 6px 10px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--mut); }
+.thead2 span:last-child { text-align: right; }
+.trow { padding: 10px 6px; border-bottom: 1px solid var(--line); }
+.trow.offr .tproj, .trow.offr .tver { opacity: .45; }
+.tproj { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tproj b { display: block; font: 600 15px 'Chakra Petch', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tproj em, .tver em { display: block; font-style: normal; font-size: 13px; color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tproj > div, .tver { min-width: 0; }
+.tver b { display: block; font: 500 13.5px 'IBM Plex Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tact { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.vernav { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; background: none; border: 0; color: var(--mut); cursor: pointer; padding: 0; flex-shrink: 0; }
+.vernav svg { width: 100%; height: 100%; }
+.vernav:hover { color: var(--v2); }
+.vernav:disabled { opacity: .35; cursor: default; }
+.vernav:disabled:hover { color: var(--mut); }
+.tact .sw { margin: 0 2px; }
+.ib { background: none; border: 1px solid transparent; padding: 6px; color: var(--mut); cursor: pointer; display: flex; }
+.ib:hover { color: var(--red); border-color: var(--line2); }
+.ib svg { width: 16px; height: 16px; }
+
+.pempty { padding: 56px 0 0; max-width: 460px; }
+.pempty h3 { margin: 0 0 20px; font: 700 22px 'Chakra Petch', sans-serif; }
+.pempty p { margin: 0 0 20px; font-size: 15px; line-height: 1.5; color: var(--mut); }
+
+.bhead { padding: 20px 28px 0; }
+.back { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; margin-bottom: 14px; font-size: 14.5px; font-weight: 600; color: var(--mut); cursor: pointer; }
+.back:hover { color: var(--v2); }
+.back svg { width: 14px; height: 14px; }
+.bhead h1 { margin: 0 0 6px; font: 700 28px 'Chakra Petch', sans-serif; }
+.bhead p { margin: 0 0 16px; font-size: 14.5px; color: var(--mut); }
+.bhead p b { color: var(--tx); font-weight: 600; }
+.bctl { padding: 0 28px; }
+.bsplit { flex: 1; display: flex; min-height: 0; }
+.blist { flex: 1; overflow-y: auto; padding: 0 20px 16px 28px; min-height: 0; }
+.bcats { width: 200px; flex-shrink: 0; overflow-y: auto; padding: 4px 28px 16px 16px; border-left: 1px solid var(--line); }
+.catlabel { font-size: 12px; color: var(--mut); letter-spacing: .5px; margin-bottom: 10px; }
+.catrow { display: flex; align-items: center; gap: 9px; padding: 6px 0; font-size: 13.5px; cursor: pointer; }
+.catrow input { width: 14px; height: 14px; accent-color: var(--v); flex-shrink: 0; }
+.caticon { width: 15px; height: 15px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--mut); }
+.caticon svg { width: 100%; height: 100%; }
+.catempty { font-size: 13px; color: var(--mut); }
+.pager { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 28px; border-top: 1px solid var(--line); flex-shrink: 0; }
+.pgnav, .pgnum { background: var(--s1); border: 1px solid var(--line); color: var(--mut); font-size: 13px; min-width: 32px; height: 32px; padding: 0 8px; cursor: pointer; }
+.pgnav:hover, .pgnum:hover { border-color: var(--v); color: var(--tx); }
+.pgnum.on { background: var(--vd); border-color: var(--v); color: var(--tx); }
+.pgnav:disabled { opacity: .35; cursor: default; }
+.pgnav:disabled:hover { border-color: var(--line); color: var(--mut); }
+.pgdots { color: var(--mut); padding: 0 4px; cursor: pointer; font-size: 13px; user-select: none; }
+.pgdots:hover { color: var(--v2); }
+.pgjump { width: 64px; height: 32px; background: var(--s1); border: 1px solid var(--v); color: var(--tx); text-align: center; font-size: 13px; }
+.brow { display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: center; padding: 14px 6px; border-bottom: 1px solid var(--line); }
+.brow h4 { margin: 0; font: 600 17px 'Chakra Petch', sans-serif; }
+.brow h4 span { font: 400 14px 'Barlow', sans-serif; color: var(--mut); margin-left: 8px; }
+.brow p { margin: 3px 0 4px; font-size: 14px; line-height: 1.4; color: var(--mut); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.brow small { font: 400 12.5px 'IBM Plex Mono', monospace; color: var(--v2); }
+.inst { --c: 9px; height: 40px; width: 112px; flex-shrink: 0; }
+.inst .in { justify-content: center; font-size: 14.5px; font-weight: 600; color: var(--v2); }
+.inst.done { background: var(--line); cursor: default; }
+.inst.done .in { color: var(--mut); }
+.inst.done:hover { background: var(--line); }
+.inst.busy .in { color: var(--mut); }
+
+.pdlg { width: 460px; }
+.fld { margin-bottom: 18px; }
+.fld > label { display: block; font-size: 14px; color: var(--mut); margin-bottom: 8px; }
+.fld .find { width: 100%; }
+.npicon-row { display: flex; align-items: center; gap: 14px; }
+.npicon-btn { width: 56px; height: 56px; border: 1px solid var(--line2); background: var(--s2); cursor: pointer; padding: 0; overflow: hidden; flex-shrink: 0; }
+.npicon-btn:hover { border-color: var(--v); }
+.npicon-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.npicon-text { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--mut); }
+.npicon-text .ghost { padding: 0; font-size: 12.5px; justify-content: flex-start; width: fit-content; }
+.fixed { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; background: var(--s2); border: 1px solid var(--line); font-size: 15px; }
+.fixed span { font-size: 13px; color: var(--mut); }
+.perf { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 14px; border: 1px solid var(--line2); background: var(--s2); margin-bottom: 22px; }
+.perf b { display: block; font: 600 16px 'Chakra Petch', sans-serif; margin-bottom: 4px; }
+.perf p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--mut); }
+
+.dim { position: fixed; inset: 0; z-index: 30; background: rgba(3, 2, 7, .72); display: none; align-items: center; justify-content: center; }
+.dim.open { display: flex; }
+.dimhead { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
+.dimeyebrow { display: block; font-size: 11px; letter-spacing: 2px; color: var(--v2); margin-bottom: 6px; }
+.dimhead h1 { margin: 0; font: 700 24px 'Chakra Petch', sans-serif; }
+.dimclose { background: none; border: 1px solid var(--line2); width: 30px; height: 30px; color: var(--mut); cursor: pointer; flex-shrink: 0; }
+.dimclose:hover { color: var(--tx); border-color: var(--v); }
+.dimactions { display: flex; justify-content: flex-end; gap: 12px; }
+
+.svdlg { width: 820px; max-height: 88vh; }
+.svhead { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+.svhead h1 { flex: 1; margin: 0; font: 700 18px 'Chakra Petch', sans-serif; }
+.dimclose { background: none; border: 1px solid var(--line2); width: 30px; height: 30px; color: var(--mut); cursor: pointer; flex-shrink: 0; }
+.dimclose:hover { color: var(--tx); border-color: var(--v); }
+.svbody { display: grid; grid-template-columns: 260px 1fr; height: 460px; }
+.svlist-col { display: flex; flex-direction: column; border-right: 1px solid var(--line); min-height: 0; }
+.svlist-col .find { width: auto; }
+.svlist { flex: 1; overflow-y: auto; padding: 10px 8px; }
+.svrow { display: flex; align-items: center; gap: 10px; padding: 9px 8px; cursor: pointer; }
+.svrow:hover { background: var(--s2); }
+.svrow.sel { background: rgba(124, 58, 237, 0.16); }
+.svtype { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 700 11px 'Chakra Petch', sans-serif; color: #fff; flex-shrink: 0; }
+.svtype.release { background: #3be07b; color: #04210f; }
+.svtype.beta { background: #e0a339; color: #241600; }
+.svtype.alpha { background: #ff6b7a; color: #240404; }
+.svrow-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.svcurrent { font-size: 10.5px; font-weight: 700; letter-spacing: .3px; color: var(--v2); background: rgba(124, 58, 237, 0.18); border: 1px solid var(--line2); padding: 2px 7px; flex-shrink: 0; }
+.svdetail { padding: 20px 24px; overflow-y: auto; min-height: 0; }
+.svdetail-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.svdetail-top h2 { margin: 0; font: 700 19px 'Chakra Petch', sans-serif; }
+.svdate { font-size: 12.5px; color: var(--mut); }
+.svbadges { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; font-size: 12.5px; color: var(--mut); }
+.svbadge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; text-transform: capitalize; }
+.svbadge.release { background: rgba(59, 224, 123, 0.15); color: #3be07b; }
+.svbadge.beta { background: rgba(224, 163, 57, 0.15); color: #e0a339; }
+.svbadge.alpha { background: rgba(255, 107, 122, 0.15); color: #ff6b7a; }
+.svchangelog { font-size: 13.5px; line-height: 1.7; color: var(--tx); white-space: pre-wrap; }
+.svchangelog:empty::before { content: 'No changelog provided for this version.'; color: var(--mut); }
+.svfoot { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 22px; border-top: 1px solid var(--line); background: var(--s1); }
+.svwarn { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #e0a339; max-width: 380px; }
+.svwarn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.svempty { padding: 30px 14px; color: var(--mut); font-size: 13px; text-align: center; }
+
+.band {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(112deg, transparent 58%, rgba(138, 61, 255, .07) 58%, rgba(138, 61, 255, .07) 71%, transparent 71%);
+}
+.art {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  height: min(460px, calc(100% - 190px));
+  aspect-ratio: 1 / 1;
+  background: url(assets/logo.webp) center / contain no-repeat;
+  mix-blend-mode: screen;
+}
+.dockwrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.dock { --c: 22px; width: min(720px, calc(100% - 48px)); height: 100px; }
+.dock .in { align-items: stretch; }
+.dv { display: flex; flex-direction: column; justify-content: center; padding: 0 32px; min-width: 200px; max-width: 340px; }
+.type-badge { display: inline-block; width: fit-content; font: 700 10.5px 'Chakra Petch', sans-serif; letter-spacing: 1.5px; color: var(--v2); background: rgba(138,61,255,.14); border: 1px solid var(--line2); padding: 3px 8px; margin-bottom: 6px; }
+.dv b { font: 700 34px/1 'Chakra Petch', sans-serif; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv b.empty { font-size: 26px; color: var(--mut); }
+.dv span { margin-top: 5px; font-size: 14.5px; color: var(--mut); }
+.dchange {
+  flex: 1;
+  background: none;
+  border: 0;
+  border-left: 1px solid var(--line);
+  padding: 0 28px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dchange:hover { background: var(--s2); color: var(--v2); }
+.launch {
+  width: 230px;
+  border: 0;
+  background: var(--g);
+  color: #04210f;
+  font: 700 27px 'Chakra Petch', sans-serif;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+.launch:hover { background: var(--g2); }
+.launch.off { background: var(--s2); color: var(--mut); font-size: 17px; }
+.launch.off:hover { background: var(--line); color: var(--tx); }
+.launch:disabled, .launch:disabled:hover { background: var(--s2); color: var(--mut); cursor: not-allowed; }
+.spec { display: flex; font-size: 14px; color: var(--mut); min-height: 20px; }
+.spec button {
+  background: none;
+  border: 0;
+  border-left: 1px solid var(--line2);
+  padding: 0 18px;
+  font-size: 14px;
+  color: var(--mut);
+  cursor: pointer;
+}
+.spec button:first-child { border-left: 0; }
+.spec button b { color: var(--tx); font-weight: 600; }
+.spec button:hover b { color: var(--v2); }
+.note {
+  position: absolute;
+  left: 50%;
+  bottom: 178px;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  background: var(--s1);
+  border: 1px solid var(--line2);
+  font-size: 14px;
+  color: var(--tx);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+  white-space: nowrap;
+}
+.note.show { opacity: 1; }
+
+.vs { display: grid; grid-template-columns: 236px 1fr; width: 100%; min-height: 0; }
+.loaders { background: var(--s1); border-right: 1px solid var(--line); padding: 16px 0; }
+.ld {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: 3px solid transparent;
+  padding: 15px 24px;
+  cursor: pointer;
+}
+.ldico { width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ldico svg { width: 100%; height: 100%; }
+.ldico img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ld b { display: block; font: 600 20px 'Chakra Petch', sans-serif; color: var(--mut); }
+.ld small { display: block; margin-top: 2px; font-size: 13px; color: var(--mut); }
+.ld:hover b { color: var(--tx); }
+.ld.on { background: var(--s2); border-left-color: var(--v); }
+.ld.on b { color: var(--tx); }
+.vpane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.vhead { display: flex; align-items: center; gap: 18px; padding: 18px 28px; }
+.find { --c: 9px; flex: 1; height: 42px; }
+.find .in { gap: 10px; padding: 0 14px; color: var(--mut); }
+.find svg { width: 16px; height: 16px; flex-shrink: 0; }
+.find input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; font-size: 15px; color: var(--tx); }
+.find input::placeholder { color: var(--mut); }
+.snap { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--mut); }
+.sw { position: relative; width: 42px; height: 24px; border-radius: 12px; background: var(--s2); border: 1px solid var(--line2); cursor: pointer; flex-shrink: 0; transition: background .15s, border-color .15s; }
+.sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--mut); transition: left .15s cubic-bezier(.4,0,.2,1), background .15s; }
+.sw.on { background: var(--v); border-color: var(--v); }
+.sw.on::after { left: 20px; background: #fff; box-shadow: 0 0 8px rgba(183, 149, 255, .8); }
+.thead, .vrow { display: grid; grid-template-columns: 1.3fr 1fr 1.2fr; padding: 0 28px; }
+.thead { padding-bottom: 10px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--mut); }
+.vlist { flex: 1; overflow-y: auto; min-height: 0; }
+.vrow { align-items: center; height: 42px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 14.5px; }
+.vrow:hover { background: var(--s1); }
+.vrow.sel { background: var(--s2); box-shadow: inset 3px 0 0 var(--v); }
+.vid, .vbd { font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+.vrow .snapshot { color: var(--v2); }
+.vrow .vbd { color: var(--mut); }
+.vmsg { padding: 32px 28px; font-size: 15px; color: var(--mut); display: flex; align-items: center; gap: 16px; }
+.vmsg button { background: none; border: 1px solid var(--line2); padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.vmsg button:hover { border-color: var(--v); }
+.vbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-top: 1px solid var(--line); background: var(--s1); }
+.picked { font-size: 15px; color: var(--mut); }
+.picked b { color: var(--tx); font: 600 17px 'Chakra Petch', sans-serif; margin-right: 8px; }
+.vbtns { display: flex; align-items: center; gap: 14px; }
+.ghost { background: none; border: 0; padding: 10px 14px; font-size: 15px; font-weight: 500; color: var(--mut); cursor: pointer; }
+.ghost:hover { color: var(--tx); }
+.vbtn {
+  --c: 10px;
+  border: 0;
+  background: var(--v);
+  color: #fff;
+  padding: 0 28px;
+  height: 42px;
+  font: 700 16px 'Chakra Petch', sans-serif;
+  cursor: pointer;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+.vbtn:hover { background: #a063ff; }
+.vbtn:disabled { background: var(--s2); color: var(--mut); cursor: not-allowed; }
+
+.st { width: 100%; display: flex; flex-direction: column; min-height: 0; }
+.st-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 40px; border-bottom: 1px solid var(--line); }
+.st-head h2 { margin: 0; font: 700 26px 'Chakra Petch', sans-serif; }
+.x { --c: 8px; width: 38px; height: 38px; }
+.x .in { justify-content: center; color: var(--mut); }
+.x svg { width: 16px; height: 16px; }
+.st-body { flex: 1; overflow-y: auto; padding: 0 40px; min-height: 0; }
+.srow { display: grid; grid-template-columns: 250px 1fr; gap: 32px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+.srow:last-child { border-bottom: 0; }
+.srow h4 { margin: 0 0 5px; font: 600 18px 'Chakra Petch', sans-serif; }
+.srow p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--mut); }
+.ram-top { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
+.ram-val { font: 500 36px 'IBM Plex Mono', monospace; }
+.ram-val small { font-size: 16px; color: var(--mut); margin-left: 4px; }
+.ram-free { font-size: 14px; color: var(--mut); }
+.ruler { position: relative; height: 40px; }
+.ticks { position: absolute; left: 6px; right: 6px; top: 24px; height: 10px; background: repeating-linear-gradient(90deg, var(--line2) 0 1px, transparent 1px calc(100% / var(--span, 31.5))); }
+.rng {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 100%;
+  height: 8px;
+  margin: 0;
+  background: linear-gradient(90deg, var(--v) var(--p, 50%), var(--s2) var(--p, 50%));
+  outline: 0;
+}
+.rng::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 24px;
+  background: var(--tx);
+  cursor: pointer;
+  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+}
+.rlabels { display: flex; justify-content: space-between; font: 400 12.5px 'IBM Plex Mono', monospace; color: var(--mut); }
+.res { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.num { --c: 8px; width: 96px; height: 42px; }
+.num .in { padding: 0 12px; }
+.num input { width: 100%; background: none; border: 0; outline: 0; font: 500 17px 'IBM Plex Mono', monospace; text-align: center; -moz-appearance: textfield; }
+.num input::-webkit-outer-spin-button, .num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.times { color: var(--mut); }
+.seg { display: flex; margin-left: 8px; }
+.seg button { background: var(--s1); border: 1px solid var(--line); border-left-width: 0; padding: 0 16px; height: 42px; font-size: 14px; font-weight: 500; color: var(--mut); cursor: pointer; }
+.seg button:first-child { border-left-width: 1px; }
+.seg button.on { background: var(--vd); border-color: var(--v); color: var(--tx); }
+.ratio { font: 400 14px 'IBM Plex Mono', monospace; color: var(--v2); margin-left: 6px; }
+.fs { display: flex; align-items: center; gap: 14px; font-size: 15px; }
+.java { display: flex; gap: 10px; }
+.path { --c: 8px; flex: 1; min-width: 0; height: 42px; }
+.path .in { padding: 0 14px; font: 400 13.5px 'IBM Plex Mono', monospace; color: var(--tx); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; line-height: 40px; }
+.path .in.placeholder { color: var(--mut); font-family: 'Barlow', sans-serif; font-size: 15px; }
+.sbtn { --c: 8px; height: 42px; }
+.sbtn .in { padding: 0 18px; font-size: 14.5px; font-weight: 600; }
+.savebar { display: flex; align-items: center; justify-content: space-between; padding: 14px 40px; border-top: 1px solid var(--line); background: var(--s1); }
+.savebar .state { font-size: 14.5px; color: var(--mut); }
+.savebar .state.dirty { color: var(--v2); }
+
+.foot { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--mut); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="mark"></span>
+      <span class="word">Nexus<span>Client</span></span>
+    </div>
+    <div class="tools">
+      <span class="err" id="err"></span>
+      <button class="cut tool updatebtn" id="updateBtn" aria-label="Update ready — click to restart and install" title="Update ready — click to restart and install" style="display:none;">
+        <span class="in">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M6 9l4 4 4-4M4 16h12"/></svg>
+        </span>
+        <span class="dot"></span>
+      </button>
+      <button class="cut tool" id="openSettings" aria-label="Settings">
+        <span class="in">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><path d="M3 5h14M3 10h14M3 15h14"/><path d="M7 3v4M13 8v4M6 13v4"/></svg>
+        </span>
+      </button>
+      <button class="cut signin" id="signin">
+        <span class="in"><span class="ms"><i></i><i></i><i></i><i></i></span><span id="signinTxt">Sign in with Microsoft</span></span>
+      </button>
+      <div class="acctwrap" id="acctwrap">
+        <button class="cut acct" id="acct">
+          <span class="in">
+            <img class="head" id="acctSkin" alt="">
+            <span class="who"><b id="acctName"></b><em>Online</em></span>
+            <svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M4 7l6 6 6-6"/></svg>
+          </span>
+        </button>
+        <div class="menu" id="menu"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <aside class="rail" id="rail">
+      <button class="ritem" id="rHome"><span class="mk"></span><span class="txt"><b>Home</b></span></button>
+      <div class="rlabel">Profiles</div>
+      <div class="rlist" id="rlist"></div>
+      <button class="cut newp" id="newProfileBtn"><span class="in"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M7 1v12M1 7h12"/></svg>New profile</span></button>
+    </aside>
+
+    <div class="pane">
+    <section class="screen on" id="scr-home">
+      <div class="band"></div>
+      <div class="art"></div>
+      <div class="note" id="note"></div>
+      <div class="dockwrap">
+        <div class="cut dock">
+          <div class="in">
+            <div class="dv"><span class="type-badge" id="dType"></span><b id="dVer"></b><span id="dLoader"></span></div>
+            <button class="dchange" id="change">Change version</button>
+            <button class="launch" id="launch">Launch</button>
+          </div>
+        </div>
+        <div class="spec" id="spec"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-profile">
+      <div class="prof">
+        <div class="phead">
+          <span class="ico lg" id="pIco"></span>
+          <div class="pinfo">
+            <h1 id="pName"></h1>
+            <input class="rename" id="pRename" maxlength="32">
+            <div class="pmeta" id="pMeta"></div>
+          </div>
+          <div class="pact">
+            <button class="playb" id="pPlay">Launch</button>
+            <button class="cut tool" id="pMore" aria-label="Profile options">
+              <span class="in"><svg viewBox="0 0 20 20" fill="currentColor"><rect x="9" y="3" width="2.4" height="2.4"/><rect x="9" y="8.8" width="2.4" height="2.4"/><rect x="9" y="14.6" width="2.4" height="2.4"/></svg></span>
+            </button>
+            <div class="pmenu" id="pMenu"><div id="mRename">Rename</div><div class="danger" id="mDelete">Delete profile</div></div>
+          </div>
+        </div>
+        <div class="ptabs" id="ptabs">
+          <button data-tab="content" class="on">Content</button>
+          <button data-tab="files">Files</button>
+          <button data-tab="logs">Logs</button>
+        </div>
+        <div class="pbody" id="pBody"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-browse">
+      <div class="brw">
+        <div class="bhead">
+          <button class="back" id="bBack"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M9 2L4 7l5 5"/></svg><span id="bBackTxt"></span></button>
+          <h1>Browse content</h1>
+          <p id="bSub"></p>
+        </div>
+        <div class="bctl">
+          <div class="tb">
+            <label class="cut find"><span class="in"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l5 5"/></svg><input id="bq" placeholder="Search Modrinth" autocomplete="off"></span></label>
+          </div>
+          <div class="itseg" id="bseg"></div>
+        </div>
+        <div class="bsplit">
+          <div class="blist" id="blist"></div>
+          <aside class="bcats" id="bcats"></aside>
+        </div>
+        <div class="pager" id="pager"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-versions">
+      <div class="vs">
+        <nav class="loaders" id="loaders"></nav>
+        <div class="vpane">
+          <div class="vhead">
+            <label class="cut find">
+              <span class="in">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l5 5"/></svg>
+                <input id="filter" placeholder="Filter versions" autocomplete="off">
+              </span>
+            </label>
+            <label class="snap" id="snapWrap">Snapshots<span class="sw" id="snapSw" tabindex="0" role="switch" aria-checked="false"></span></label>
+          </div>
+          <div class="thead"><span>Version</span><span>Channel</span><span>Loader build</span></div>
+          <div class="vlist" id="vlist"></div>
+          <div class="vbar">
+            <div class="picked" id="picked"></div>
+            <div class="vbtns">
+              <button class="ghost" id="vcancel">Cancel</button>
+              <button class="vbtn" id="vok">Use this version</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-settings">
+      <div class="st">
+        <div class="st-head">
+          <h2>Settings</h2>
+          <button class="cut x" id="closeSettings" aria-label="Close settings">
+            <span class="in"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M3 3l10 10M13 3L3 13"/></svg></span>
+          </button>
+        </div>
+        <div class="st-body">
+          <div class="srow">
+            <div><h4>Memory</h4><p>How much RAM the game can use. Too little causes stutter, too much slows garbage collection.</p></div>
+            <div>
+              <div class="ram-top"><span class="ram-val"><span id="ramVal">4.0</span><small>GB</small></span><span class="ram-free" id="ramFree"></span></div>
+              <div class="ruler" id="ruler"><div class="ticks"></div><input class="rng" id="ram" type="range" min="0.5" max="32" step="0.5" value="4"></div>
+              <div class="rlabels" id="rlabels"></div>
+            </div>
+          </div>
+          <div class="srow">
+            <div><h4>Resolution</h4><p>Window size when the game starts.</p></div>
+            <div class="res">
+              <label class="cut num"><span class="in"><input id="rw" type="number" min="320"></span></label>
+              <span class="times">×</span>
+              <label class="cut num"><span class="in"><input id="rh" type="number" min="240"></span></label>
+              <div class="seg" id="seg"><button data-w="1280" data-h="720">720p</button><button data-w="1920" data-h="1080">1080p</button><button data-w="2560" data-h="1440">1440p</button></div>
+              <span class="ratio" id="ratio"></span>
+            </div>
+          </div>
+          <div class="srow">
+            <div><h4>Fullscreen</h4><p>Ignore the resolution and start fullscreen.</p></div>
+            <div class="fs"><span class="sw" id="fsSw" tabindex="0" role="switch" aria-checked="false"></span><span id="fsTxt">Off</span></div>
+          </div>
+          <div class="srow">
+            <div><h4>Java</h4><p>The runtime used to start the game. Leave empty to use the system default.</p></div>
+            <div class="java">
+              <div class="cut path"><div class="in placeholder" id="javaPath">System default</div></div>
+              <button class="cut sbtn" id="javaDetect"><span class="in">Detect</span></button>
+              <button class="cut sbtn" id="javaBrowse"><span class="in">Browse</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="savebar">
+          <span class="state" id="state">All changes saved</span>
+          <div class="vbtns"><button class="ghost" id="scancel">Cancel</button><button class="vbtn" id="ssave">Save changes</button></div>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <div class="dim" id="newProfileOverlay">
+    <div class="cut pdlg">
+      <div class="in" style="display:block;padding:26px 28px 22px;">
+        <div class="dimhead">
+          <div>
+            <span class="dimeyebrow">PROFILE</span>
+            <h1>New profile</h1>
+          </div>
+          <button class="dimclose" id="npClose" aria-label="Close">✕</button>
+        </div>
+
+        <div class="fld">
+          <label>Icon</label>
+          <div class="npicon-row">
+            <button class="npicon-btn" id="npIconBtn" aria-label="Choose icon" type="button"><img id="npIconImg" src="assets/mark-icon.webp" alt=""></button>
+            <div class="npicon-text">
+              <span id="npIconLabel">Default logo</span>
+              <button class="ghost" id="npIconClear" style="display:none;">Remove</button>
+            </div>
+          </div>
+        </div>
+        <div class="fld">
+          <label for="npName">Name</label>
+          <label class="cut find"><span class="in"><input id="npName" placeholder="Survival" maxlength="32" autocomplete="off"></span></label>
+        </div>
+        <div class="fld">
+          <label>Game version</label>
+          <button class="fixed" id="npVersionBtn" style="cursor:pointer;width:100%;text-align:left;">
+            <b id="npGame">Choose a version</b>
+          </button>
+        </div>
+
+        <div class="dimactions">
+          <button class="ghost" id="npCancel">Cancel</button>
+          <button class="vbtn" id="npCreate" disabled>Create profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dim" id="svOverlay">
+    <div class="cut svdlg">
+      <div class="in" style="display:block;padding:0;">
+        <div class="svhead">
+          <span class="ico md" id="svIco"></span>
+          <h1 id="svTitle">Switch version</h1>
+          <button class="dimclose" id="svClose" aria-label="Close">✕</button>
+        </div>
+        <div class="svbody">
+          <div class="svlist-col">
+            <div class="svlist" id="svList"></div>
+          </div>
+          <div class="svdetail" id="svDetail"></div>
+        </div>
+        <div class="svfoot">
+          <span class="svwarn"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 1 17h18L10 2z"/><path d="M10 8v4M10 14v.01"/></svg>Switching can break your instance. Review the changelog and back up first.</span>
+          <div class="dimactions" style="margin:0;">
+            <button class="ghost" id="svCancel">Cancel</button>
+            <button class="vbtn" id="svConfirm" disabled>Switch version</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span></span><span>Not affiliated with Mojang or Microsoft</span></footer>
+</div>
+
+<script>
+const LOADERS = { vanilla: 'Vanilla', fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge' };
+const LOADER_ICONS = {
+  vanilla: '<svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">' +
+    '<rect width="8" height="2" fill="#6a9c3c"/>' +
+    '<rect y="2" width="8" height="6" fill="#8a5a34"/>' +
+    '<rect x="1" y="0" width="1" height="1" fill="#4f7a2c"/>' +
+    '<rect x="5" y="1" width="1" height="1" fill="#4f7a2c"/>' +
+    '<rect x="1" y="3" width="1" height="1" fill="#6e4526"/>' +
+    '<rect x="4" y="4" width="1" height="1" fill="#6e4526"/>' +
+    '<rect x="2" y="5" width="1" height="1" fill="#6e4526"/>' +
+    '<rect x="6" y="3" width="1" height="1" fill="#6e4526"/>' +
+    '<rect x="5" y="6" width="1" height="1" fill="#6e4526"/></svg>',
+  fabric: '<img src="assets/loader-fabric.webp" alt="" style="image-rendering:pixelated;">',
+  forge: '<img src="assets/loader-forge.webp" alt="">',
+  neoforge: '<img src="assets/loader-neoforge.webp" alt="" style="image-rendering:pixelated;">'
+};
+const CONTENT_TYPES = { modpack: 'Modpacks', mod: 'Mods', resourcepack: 'Resource Packs', shader: 'Shaders' };
+const TYPES = { all: 'All', modpack: 'Modpacks', mod: 'Mods', resourcepack: 'Resource packs', shader: 'Shaders' };
+const TONES = ['#2a1d4d', '#1e2a52', '#3a1d4a', '#1d3a4c', '#2e2456'];
+
+const S = {
+  booting: true,
+  signedIn: false,
+  busy: false,
+  active: null,
+  accounts: [],
+  loader: null,
+  ver: null,
+  settings: null,
+  sys: { total: 16384, free: 0 },
+  pl: 'vanilla',
+  pv: null,
+  snap: false,
+  q: '',
+  loading: false,
+  error: '',
+  javaDraft: '',
+  profiles: [],
+  curProfile: null,
+  profileTab: 'content',
+  filesPath: '',
+  itemType: 'all',
+  itemQuery: '',
+  browseType: 'mod',
+  browseQuery: '',
+  browseResults: [],
+  browseLoading: false,
+  browseError: '',
+  browseOffset: 0,
+  browseLimit: 100,
+  browseTotal: 0,
+  availableCategories: [],
+  selectedCategories: [],
+  consoleByProfile: {},
+  versionMode: 'home',
+  npLoader: null,
+  npVer: null,
+  npLoaderVersion: null,
+  npIcon: null,
+  svProfileId: null,
+  svItemId: null,
+  svLoaderCache: null,
+  svVersions: [],
+  svCurrentId: null,
+  svSelectedId: null
+};
+const cache = {};
+const $ = (id) => document.getElementById(id);
+let noteTimer = null;
+let browseDebounce = null;
+
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+const curProfile = () => S.profiles.find((p) => p.id === S.curProfile);
+const tone = (name) => TONES[[...name].reduce((a, ch) => a + ch.charCodeAt(0), 0) % TONES.length];
+const initial = (name) => name.trim().charAt(0).toUpperCase() || '?';
+const escapeHtml = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function icoHtml(name, iconUrl, cls) {
+  if (iconUrl) return '<span class="ico ' + (cls || '') + '"><img src="' + iconUrl + '" alt=""></span>';
+  return '<span class="ico ' + (cls || '') + '" style="background:' + tone(name) + '">' + escapeHtml(initial(name)) + '</span>';
+}
+function fmtDownloads(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M downloads';
+  if (n >= 1e3) return Math.round(n / 1e3) + 'K downloads';
+  return n + ' downloads';
+}
+
+function syncRailVisibility() {
+  $('stage').classList.toggle('has-rail', S.signedIn && !S.booting);
+}
+
+function show(name) {
+  ['home', 'profile', 'browse', 'versions', 'settings'].forEach((n) => $('scr-' + n).classList.toggle('on', n === name));
+  $('menu').classList.remove('open');
+  $('pMenu').classList.remove('open');
+  syncRailVisibility();
+  if (name === 'home') { renderHome(); renderRail(); }
+  if (name === 'profile') { S.itemType = 'all'; S.itemQuery = ''; renderProfile(); renderRail(); }
+  if (name === 'browse') {
+    const p = curProfile();
+    S.browseQuery = '';
+    $('bq').value = '';
+    S.browseType = p && p.loader === 'vanilla' ? 'resourcepack' : 'mod';
+    S.browseOffset = 0;
+    S.selectedCategories = [];
+    renderBrowseTabs();
+    loadCategories();
+    renderBrowse(true);
+  }
+  if (name === 'versions') openVersions();
+  if (name === 'settings') openSettings();
+}
+
+async function refreshProfiles() {
+  S.profiles = await window.nexus.getProfiles();
+  renderRail();
+}
+
+function showNote(text) {
+  const n = $('note');
+  n.textContent = text;
+  n.classList.add('show');
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => n.classList.remove('show'), 4000);
+}
+
+function addConsoleLine(line) {
+  if (!line || !line.profileId) return;
+  const arr = S.consoleByProfile[line.profileId] || (S.consoleByProfile[line.profileId] = []);
+  arr.push(line);
+  if (arr.length > 500) arr.shift();
+  const p = curProfile();
+  if (p && p.id === line.profileId && S.profileTab === 'logs' && $('scr-profile').classList.contains('on')) {
+    renderProfileLogs();
+  }
+}
+
+function renderProfileLogs() {
+  const p = curProfile();
+  if (!p) return;
+  const lines = S.consoleByProfile[p.id] || [];
+  const box = $('pBody');
+  box.innerHTML = '<div class="logbar"><button class="ghost" id="logClear">Clear</button></div>' +
+    '<textarea class="conlog" id="conlog" readonly placeholder="Nothing logged yet for this profile. Errors from installs will show up here."></textarea>';
+  const area = $('conlog');
+  area.value = lines.map((l) => '[' + new Date(l.time).toLocaleTimeString() + '] ' + l.text).join('\n');
+  area.scrollTop = area.scrollHeight;
+  $('logClear').addEventListener('click', () => {
+    S.consoleByProfile[p.id] = [];
+    renderProfileLogs();
+  });
+}
+
+function fmtBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: '2-digit' }) +
+    ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+async function renderProfileFiles() {
+  const p = curProfile();
+  if (!p) return;
+  const box = $('pBody');
+  box.innerHTML = '<div class="catempty">Loading…</div>';
+
+  const res = await window.nexus.listProfileDir(p.id, S.filesPath);
+
+  if (!res.success) {
+    box.innerHTML = '<div class="rempty" style="padding:22px 6px">' + escapeHtml(res.error) + '</div>';
+    return;
+  }
+
+  const segments = S.filesPath ? S.filesPath.split('/').filter(Boolean) : [];
+  const currentLabel = segments.length ? segments[segments.length - 1] : '';
+
+  const pathBar = '<div class="fpath">' +
+    '<button class="fhome" id="fHome" aria-label="Root folder"><img src="assets/home-art-icon.webp" alt=""></button>' +
+    (currentLabel ? '<span class="fpathname">' + escapeHtml(currentLabel) + '</span>' : '') +
+    '<button class="ghost" id="fRefresh" style="margin-left:auto;">Refresh</button>' +
+    '</div>';
+
+  if (!res.items.length) {
+    box.innerHTML = pathBar + '<div class="pempty"><h3>This folder is empty</h3></div>';
+  } else {
+    box.innerHTML = pathBar +
+      '<div class="ftable">' +
+      '<div class="fthead"><span>Name</span><span>Size</span><span>Created</span><span>Modified</span></div>' +
+      res.items.map((it, i) =>
+        '<div class="frow' + (it.isDir ? ' isdir' : '') + '" data-i="' + i + '">' +
+        '<span class="fname">' + (it.isDir ? folderIcon() : fileIcon()) + escapeHtml(it.name) + '</span>' +
+        '<span>' + (it.isDir ? (it.itemCount + ' item' + (it.itemCount === 1 ? '' : 's')) : fmtBytes(it.size)) + '</span>' +
+        '<span>' + fmtDate(it.created) + '</span>' +
+        '<span>' + fmtDate(it.modified) + '</span>' +
+        '</div>'
+      ).join('') +
+      '</div>';
+    box.querySelectorAll('.frow.isdir').forEach((row) => {
+      row.addEventListener('click', () => {
+        const item = res.items[+row.dataset.i];
+        S.filesPath = S.filesPath ? S.filesPath + '/' + item.name : item.name;
+        renderProfileFiles();
+      });
+    });
+  }
+
+  $('fHome').addEventListener('click', () => {
+    if (!S.filesPath) return;
+    S.filesPath = '';
+    renderProfileFiles();
+  });
+  $('fRefresh').addEventListener('click', () => renderProfileFiles());
+}
+
+function folderIcon() {
+  return '<svg class="ftype" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1-1h4l1.5 2H16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5z"/></svg>';
+}
+
+function fileIcon() {
+  return '<svg class="ftype" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h6l3 3v13H6z"/><path d="M12 2v3h3"/></svg>';
+}
+
+function setSwitch(el, on) {
+  el.classList.toggle('on', on);
+  el.setAttribute('aria-checked', String(on));
+}
+
+function renderTop() {
+  $('signin').style.display = !S.booting && !S.signedIn ? 'block' : 'none';
+  $('acctwrap').style.display = !S.booting && S.signedIn ? 'block' : 'none';
+  if (S.signedIn && S.active) {
+    $('acctSkin').src = S.active.skinUrl;
+    $('acctName').textContent = S.active.name;
+  }
+  renderMenu();
+}
+
+function renderMenu() {
+  const menu = $('menu');
+  menu.innerHTML = '';
+  S.accounts.forEach((acc) => {
+    const isActive = S.active && acc.uuid === S.active.uuid;
+    const row = document.createElement('div');
+    row.className = 'mi' + (isActive ? ' on' : '');
+    const img = document.createElement('img');
+    img.className = 'head sm';
+    img.src = acc.skinUrl;
+    const name = document.createElement('span');
+    name.className = 'grow';
+    name.textContent = acc.name;
+    row.appendChild(img);
+    row.appendChild(name);
+    if (isActive) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = 'Active';
+      row.appendChild(tag);
+    } else {
+      const rm = document.createElement('span');
+      rm.className = 'rm';
+      rm.title = 'Remove account';
+      rm.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M3 3l10 10M13 3L3 13"/></svg>';
+      rm.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const res = await window.nexus.removeAccount(acc.uuid);
+        S.accounts = res.accounts;
+        renderMenu();
+      });
+      row.appendChild(rm);
+      row.addEventListener('click', () => switchTo(acc.uuid));
+    }
+    menu.appendChild(row);
+  });
+  const add = document.createElement('div');
+  add.className = 'mi add';
+  add.textContent = 'Add account';
+  add.addEventListener('click', () => {
+    $('menu').classList.remove('open');
+    doLogin();
+  });
+  menu.appendChild(add);
+}
+
+function applyLogin(r) {
+  S.signedIn = true;
+  S.active = r.active;
+  S.accounts = r.accounts;
+  $('err').textContent = '';
+  renderTop();
+  renderHome();
+}
+
+async function doLogin() {
+  if (S.busy) return;
+  S.busy = true;
+  $('err').textContent = '';
+  $('signin').disabled = true;
+  $('signinTxt').textContent = 'Signing in...';
+  const r = await window.nexus.loginMicrosoft();
+  S.busy = false;
+  $('signin').disabled = false;
+  $('signinTxt').textContent = 'Sign in with Microsoft';
+  if (r.success) applyLogin(r);
+  else $('err').textContent = r.error;
+}
+
+async function switchTo(uuid) {
+  $('menu').classList.remove('open');
+  const r = await window.nexus.switchAccount(uuid);
+  if (r.success) applyLogin(r);
+  else $('err').textContent = r.error;
+}
+
+function renderHome() {
+  const has = !!S.ver;
+  const lastProfile = S.settings && S.settings.lastPlayedProfileId
+    ? S.profiles.find((p) => p.id === S.settings.lastPlayedProfileId)
+    : null;
+  const matches = has && lastProfile && lastProfile.loader === S.loader && lastProfile.mcVersion === S.ver;
+
+  $('dType').textContent = has ? LOADERS[S.loader].toUpperCase() : '';
+  $('dVer').textContent = has ? (matches ? lastProfile.name : S.ver) : 'No version';
+  $('dVer').classList.toggle('empty', !has);
+  $('dLoader').textContent = has ? (LOADERS[S.loader] + ' ' + S.ver) : 'Choose what to play';
+  $('change').textContent = has ? 'Change version' : 'Choose version';
+  syncRailVisibility();
+
+  const l = $('launch');
+  if (!l.disabled) {
+    let label = 'Launch';
+    let off = false;
+    if (S.booting) { off = true; }
+    else if (!S.signedIn) { label = 'Sign in to launch'; off = true; }
+    else if (!has) { label = 'Pick a version'; off = true; }
+    l.textContent = label;
+    l.classList.toggle('off', off);
+  }
+
+  const st = S.settings;
+  if (!st) { $('spec').innerHTML = ''; return; }
+  const gb = st.ramMB / 1024;
+  const size = st.fullscreen ? '<b>Fullscreen</b>' : '<b>' + st.resolutionWidth + '×' + st.resolutionHeight + '</b>';
+  $('spec').innerHTML =
+    '<button><b>' + (gb % 1 === 0 ? gb : gb.toFixed(1)) + ' GB</b> memory</button>' +
+    '<button>' + size + '</button>' +
+    '<button><b>' + (st.javaPath ? 'Custom' : 'System') + '</b> Java</button>';
+  $('spec').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => show('settings')));
+}
+
+function renderRail() {
+  $('rHome').classList.toggle('on', $('scr-home').classList.contains('on'));
+  const box = $('rlist');
+  if (!S.profiles.length) {
+    box.innerHTML = '<div class="rempty">No profiles yet. Create one to start adding mods.</div>';
+    return;
+  }
+  box.innerHTML = S.profiles.map((p) =>
+    '<button class="ritem' + (!$('scr-home').classList.contains('on') && p.id === S.curProfile ? ' on' : '') + '" data-id="' + p.id + '">' +
+    '<span class="mk"' + (p.icon ? ' style="background-image:url(' + p.icon + ')"' : '') + '></span><span class="txt"><b>' + escapeHtml(p.name) + '</b><small>' + LOADERS[p.loader] + ' ' + escapeHtml(p.mcVersion) + '</small></span></button>'
+  ).join('');
+  box.querySelectorAll('.ritem').forEach((b) => b.addEventListener('click', () => openProfile(b.dataset.id)));
+}
+
+function openProfile(id) {
+  S.curProfile = id;
+  S.profileTab = 'content';
+  S.filesPath = '';
+  show('profile');
+}
+
+function fileNameFor(item, p) {
+  return item.fileName || (item.projectId + '-' + item.versionNumber + '.jar');
+}
+
+function renderProfile() {
+  const p = curProfile();
+  if (!p) { S.curProfile = null; show('home'); return; }
+  $('pIco').outerHTML = p.icon
+    ? '<span class="ico lg" id="pIco"><img src="' + p.icon + '" alt=""></span>'
+    : '<span class="ico lg nmark" id="pIco"><img src="assets/mark-icon.webp" alt=""></span>';
+  $('pName').textContent = p.name;
+  $('pMeta').innerHTML = '<span><b>' + LOADERS[p.loader] + '</b> ' + escapeHtml(p.mcVersion) + '</span><span>' + p.items.length + ' item' + (p.items.length === 1 ? '' : 's') + '</span>';
+  $('ptabs').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.tab === S.profileTab));
+
+  if (S.profileTab === 'files') { renderProfileFiles(); return; }
+  if (S.profileTab === 'logs') { renderProfileLogs(); return; }
+  renderProfileContent();
+}
+
+function renderProfileContent() {
+  const p = curProfile();
+  if (!p) return;
+  const body = $('pBody');
+
+  if (!p.items.length) {
+    body.innerHTML = '<div class="pempty"><h3>Nothing installed yet</h3><button class="vbtn" id="browseBtn">Browse content</button></div>';
+    $('browseBtn').addEventListener('click', () => show('browse'));
+    return;
+  }
+
+  const counts = { all: p.items.length, mod: 0, modpack: 0, resourcepack: 0, shader: 0 };
+  p.items.forEach((i) => { counts[i.type] = (counts[i.type] || 0) + 1; });
+  const typeKeys = p.loader === 'vanilla' ? ['all', 'resourcepack', 'shader'] : Object.keys(TYPES);
+  const rows = p.items
+    .map((item, idx) => ({ item, idx }))
+    .filter((r) => (S.itemType === 'all' || r.item.type === S.itemType) && r.item.name.toLowerCase().includes(S.itemQuery.toLowerCase()));
+
+  body.innerHTML =
+    '<div class="tb"><label class="cut find"><span class="in"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l5 5"/></svg><input id="pq" placeholder="Search ' + p.items.length + ' items" value="' + escapeHtml(S.itemQuery) + '" autocomplete="off"></span></label><button class="vbtn" id="browseBtn">Browse content</button></div>' +
+    '<div class="itseg" id="tseg">' + typeKeys.map((k) => '<button data-t="' + k + '" class="' + (S.itemType === k ? 'on' : '') + '">' + TYPES[k] + '<i>' + (counts[k] || 0) + '</i></button>').join('') + '</div>' +
+    '<div class="thead2"><span>Project</span><span>Version</span><span>Actions</span></div>' +
+    (rows.length ? rows.map((r) =>
+      '<div class="trow' + (r.item.enabled ? '' : ' offr') + '" data-idx="' + r.idx + '"><div class="tproj">' + icoHtml(r.item.name, r.item.iconUrl) + '<div><b>' + escapeHtml(r.item.name) + '</b><em>' + escapeHtml(r.item.author || '') + '</em></div></div>' +
+      '<div class="tver"><b>' + escapeHtml(r.item.versionNumber || '') + '</b><em>' + escapeHtml(fileNameFor(r.item, p)) + '</em></div>' +
+      '<div class="tact"><button class="vernav" data-a="swver" title="Switch version"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h6.5M8 3.5l2.5 3-2.5 3"/><path d="M12 9.5H5.5M8 12.5l-2.5-3 2.5-3"/></svg></button><span class="sw' + (r.item.enabled ? ' on' : '') + '" data-a="tog" tabindex="0" role="switch" aria-checked="' + r.item.enabled + '"></span><button class="ib" data-a="del" aria-label="Remove"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.6 9.5h6.8L12 4"/></svg></button></div></div>'
+    ).join('') : '<div class="rempty" style="padding:22px 6px">Nothing matches that search.</div>');
+
+  $('browseBtn').addEventListener('click', () => show('browse'));
+  $('pq').addEventListener('input', (e) => {
+    S.itemQuery = e.target.value;
+    const pos = e.target.selectionStart;
+    renderProfileContent();
+    const el = $('pq');
+    if (el) { el.focus(); el.setSelectionRange(pos, pos); }
+  });
+  $('tseg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { S.itemType = b.dataset.t; renderProfileContent(); }));
+  body.querySelectorAll('.trow').forEach((row) => {
+    const idx = +row.dataset.idx;
+    const item = p.items[idx];
+    row.querySelector('[data-a="tog"]').addEventListener('click', async () => {
+      await window.nexus.toggleItem(p.id, item.id);
+      await refreshProfilesKeepSelection();
+    });
+    row.querySelector('[data-a="del"]').addEventListener('click', async () => {
+      await window.nexus.removeItem(p.id, item.id);
+      await refreshProfilesKeepSelection();
+    });
+    row.querySelector('[data-a="swver"]').addEventListener('click', () => openSwitchVersion(p, item));
+  });
+}
+
+async function refreshProfilesKeepSelection() {
+  S.profiles = await window.nexus.getProfiles();
+  renderRail();
+  renderProfile();
+}
+
+function openSwitchVersion(profile, item) {
+  S.svProfileId = profile.id;
+  S.svItemId = item.id;
+  S.svLoaderCache = profile.loader;
+  S.svVersions = [];
+  S.svCurrentId = item.versionId;
+  S.svSelectedId = null;
+
+  $('svIco').outerHTML = icoHtml(item.name, item.iconUrl, 'md').replace('<span', '<span id="svIco"');
+  $('svTitle').textContent = 'Switch version';
+  $('svConfirm').disabled = true;
+  $('svConfirm').textContent = 'Switch version';
+  $('svList').innerHTML = '<div class="svempty">Loading versions…</div>';
+  $('svDetail').innerHTML = '';
+  $('svOverlay').classList.add('open');
+
+  window.nexus.getItemVersions(profile.id, item.id).then((res) => {
+    if (S.svItemId !== item.id) return;
+    if (!res.success) {
+      $('svList').innerHTML = '<div class="svempty">' + escapeHtml(res.error) + '</div>';
+      return;
+    }
+    S.svVersions = res.versions;
+    S.svCurrentId = res.currentVersionId;
+    renderSvList();
+    const current = S.svVersions.find((v) => v.id === S.svCurrentId) || S.svVersions[0];
+    if (current) selectSvVersion(current.id);
+  });
+}
+
+function renderSvList() {
+  const box = $('svList');
+  const filtered = S.svVersions;
+
+  if (!filtered.length) {
+    box.innerHTML = '<div class="svempty">No compatible versions found.</div>';
+    return;
+  }
+
+  box.innerHTML = filtered.map((v) => {
+    const letter = v.versionType === 'release' ? 'R' : (v.versionType === 'beta' ? 'B' : 'A');
+    return '<div class="svrow' + (v.id === S.svSelectedId ? ' sel' : '') + '" data-id="' + v.id + '">' +
+      '<span class="svtype ' + v.versionType + '">' + letter + '</span>' +
+      '<span class="svrow-name">' + escapeHtml(v.versionNumber) + '</span>' +
+      (v.id === S.svCurrentId ? '<span class="svcurrent">Current</span>' : '') +
+      '</div>';
+  }).join('');
+
+  box.querySelectorAll('.svrow').forEach((row) => {
+    row.addEventListener('click', () => selectSvVersion(row.dataset.id));
+  });
+}
+
+function selectSvVersion(versionId) {
+  S.svSelectedId = versionId;
+  renderSvList();
+  const v = S.svVersions.find((x) => x.id === versionId);
+  if (!v) return;
+
+  const letter = v.versionType === 'release' ? 'R' : (v.versionType === 'beta' ? 'B' : 'A');
+  const date = new Date(v.datePublished).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+  $('svDetail').innerHTML =
+    '<div class="svdetail-top"><h2>' + escapeHtml(v.versionNumber) + '</h2><span class="svdate">' + date + '</span></div>' +
+    '<div class="svbadges"><span class="svbadge ' + v.versionType + '">' + letter + ' ' + v.versionType + '</span><span>' + escapeHtml(LOADERS[S.svLoaderCache || '']) + '</span></div>' +
+    '<div class="svchangelog">' + escapeHtml(v.changelog) + '</div>';
+
+  $('svConfirm').disabled = versionId === S.svCurrentId;
+  $('svConfirm').textContent = versionId === S.svCurrentId ? 'Already installed' : 'Switch to ' + v.versionNumber;
+}
+
+$('svClose').addEventListener('click', () => $('svOverlay').classList.remove('open'));
+$('svCancel').addEventListener('click', () => $('svOverlay').classList.remove('open'));
+$('svConfirm').addEventListener('click', async () => {
+  if (!S.svSelectedId || S.svSelectedId === S.svCurrentId) return;
+  $('svConfirm').disabled = true;
+  $('svConfirm').textContent = 'Switching…';
+  const res = await window.nexus.setItemVersion(S.svProfileId, S.svItemId, S.svSelectedId);
+  if (!res.success) {
+    showNote(res.error || 'Could not change version.');
+    $('svConfirm').disabled = false;
+    $('svConfirm').textContent = 'Switch to ' + (S.svVersions.find((v) => v.id === S.svSelectedId) || {}).versionNumber;
+    return;
+  }
+  $('svOverlay').classList.remove('open');
+  await refreshProfilesKeepSelection();
+});
+
+function availableContentTypes(p) {
+  const keys = Object.keys(CONTENT_TYPES);
+  if (p && p.loader === 'vanilla') return keys.filter((k) => k === 'resourcepack' || k === 'shader');
+  return keys;
+}
+
+function renderBrowseTabs() {
+  const p = curProfile();
+  const types = availableContentTypes(p);
+  $('bseg').innerHTML = types.map((k) =>
+    '<button data-t="' + k + '" class="' + (S.browseType === k ? 'on' : '') + '">' + CONTENT_TYPES[k] + '</button>'
+  ).join('');
+  $('bseg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.t === S.browseType) return;
+    S.browseType = b.dataset.t;
+    S.browseOffset = 0;
+    S.selectedCategories = [];
+    renderBrowseTabs();
+    loadCategories();
+    renderBrowse(true);
+  }));
+}
+
+async function loadCategories() {
+  $('bcats').innerHTML = '<div class="catlabel">Categories</div><div class="catempty">Loading\u2026</div>';
+  const res = await window.nexus.getCategories(S.browseType);
+  S.availableCategories = res.success ? res.categories : [];
+  renderCategoryPanel();
+}
+
+function capitalize(s) {
+  return s.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function renderCategoryPanel() {
+  const box = $('bcats');
+  if (!S.availableCategories.length) {
+    box.innerHTML = '<div class="catlabel">Categories</div><div class="catempty">No filters for this type.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="catlabel">Categories</div>' + S.availableCategories.map((c) =>
+    '<label class="catrow"><input type="checkbox" value="' + escapeHtml(c.name) + '"' + (S.selectedCategories.includes(c.name) ? ' checked' : '') + '><span class="caticon">' + (c.icon || '') + '</span>' + escapeHtml(capitalize(c.name)) + '</label>'
+  ).join('');
+  box.querySelectorAll('input').forEach((inp) => inp.addEventListener('change', () => {
+    if (inp.checked) S.selectedCategories.push(inp.value);
+    else S.selectedCategories = S.selectedCategories.filter((x) => x !== inp.value);
+    S.browseOffset = 0;
+    renderBrowse(true);
+  }));
+}
+
+function gotoPage(page) {
+  const maxPage = Math.max(1, Math.ceil(S.browseTotal / S.browseLimit));
+  page = Math.min(Math.max(1, page), maxPage);
+  S.browseOffset = (page - 1) * S.browseLimit;
+  renderBrowse(true);
+}
+
+function renderPager() {
+  const box = $('pager');
+  const maxPage = Math.max(1, Math.ceil(S.browseTotal / S.browseLimit));
+  const cur = Math.floor(S.browseOffset / S.browseLimit) + 1;
+  if (maxPage <= 1) { box.innerHTML = ''; return; }
+
+  const keep = new Set([1, maxPage, cur, cur - 1, cur + 1]);
+  const pages = [...keep].filter((p) => p >= 1 && p <= maxPage).sort((a, b) => a - b);
+
+  let html = '<button class="pgnav" id="pgPrev"' + (cur <= 1 ? ' disabled' : '') + '>\u2039</button>';
+  let prev = 0;
+  pages.forEach((p) => {
+    if (p - prev > 1) html += '<span class="pgdots" data-jump="1">\u2026</span>';
+    html += '<button class="pgnum' + (p === cur ? ' on' : '') + '" data-page="' + p + '">' + p + '</button>';
+    prev = p;
+  });
+  html += '<button class="pgnav" id="pgNext"' + (cur >= maxPage ? ' disabled' : '') + '>\u203a</button>';
+  box.innerHTML = html;
+
+  box.querySelectorAll('.pgnum').forEach((b) => b.addEventListener('click', () => gotoPage(+b.dataset.page)));
+  const prevBtn = document.getElementById('pgPrev');
+  const nextBtn = document.getElementById('pgNext');
+  if (prevBtn) prevBtn.addEventListener('click', () => gotoPage(cur - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => gotoPage(cur + 1));
+  box.querySelectorAll('.pgdots').forEach((el) => el.addEventListener('click', () => {
+    el.outerHTML = '<input class="pgjump" type="number" min="1" max="' + maxPage + '" placeholder="Go to\u2026">';
+    const inp = box.querySelector('.pgjump');
+    inp.focus();
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const v = parseInt(inp.value);
+        if (v >= 1 && v <= maxPage) gotoPage(v);
+      }
+    });
+    inp.addEventListener('blur', () => renderPager());
+  }));
+}
+
+async function renderBrowse(reload) {
+  const p = curProfile();
+  if (!p) return;
+  $('bBackTxt').textContent = 'Back to ' + p.name;
+  $('bSub').innerHTML = 'Showing only results that work with <b>' + LOADERS[p.loader] + ' ' + escapeHtml(p.mcVersion) + '</b>';
+
+  const box = $('blist');
+  if (reload) {
+    S.browseLoading = true;
+    S.browseError = '';
+    box.innerHTML = '<div class="rempty" style="padding:22px 6px">Loading...</div>';
+    $('pager').innerHTML = '';
+    const res = await window.nexus.searchContent({
+      profileId: p.id,
+      query: S.browseQuery,
+      type: S.browseType,
+      loader: p.loader,
+      mcVersion: p.mcVersion,
+      categories: S.selectedCategories,
+      offset: S.browseOffset,
+      limit: S.browseLimit
+    });
+    S.browseLoading = false;
+    if (res.success) { S.browseResults = res.results; S.browseTotal = res.totalHits || 0; }
+    else { S.browseError = res.error; S.browseResults = []; S.browseTotal = 0; }
+  }
+
+  if (S.browseError) {
+    box.innerHTML = '<div class="rempty" style="padding:22px 6px">' + escapeHtml(S.browseError) + '</div>';
+    renderPager();
+    return;
+  }
+
+  if (!S.browseResults.length) {
+    box.innerHTML = '<div class="rempty" style="padding:22px 6px">Nothing matches that search.</div>';
+    renderPager();
+    return;
+  }
+
+  box.innerHTML = S.browseResults.map((c) => {
+    const done = p.items.some((i) => i.projectId === c.projectId);
+    const btn = done
+      ? '<button class="cut inst done" disabled><span class="in">Installed</span></button>'
+      : '<button class="cut inst"><span class="in">' + (c.type === 'modpack' ? 'Download' : 'Install') + '</span></button>';
+    return '<div class="brow" data-pid="' + c.projectId + '">' + icoHtml(c.name, c.iconUrl, 'md') +
+      '<div><h4>' + escapeHtml(c.name) + '<span>by ' + escapeHtml(c.author) + '</span></h4><p>' + escapeHtml(c.description || '') + '</p><small>' + fmtDownloads(c.downloads) + '</small></div>' + btn + '</div>';
+  }).join('');
+  renderPager();
+
+  box.querySelectorAll('.brow').forEach((row) => {
+    const btn = row.querySelector('.inst');
+    if (btn.classList.contains('done')) return;
+    btn.addEventListener('click', async () => {
+      const c = S.browseResults.find((x) => x.projectId === row.dataset.pid);
+      const isPack = c.type === 'modpack';
+      btn.disabled = true;
+      btn.classList.add('busy');
+      btn.querySelector('.in').textContent = isPack ? 'Downloading...' : 'Installing...';
+      const res = await window.nexus.installItem({
+        profileId: p.id,
+        projectId: c.projectId,
+        name: c.name,
+        author: c.author,
+        type: c.type,
+        iconUrl: c.iconUrl
+      });
+      if (res.success) {
+        await refreshProfilesKeepSelection();
+        renderBrowse(false);
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('busy');
+        btn.querySelector('.in').textContent = isPack ? 'Download' : 'Install';
+        showNote(res.error || 'Install failed.');
+      }
+    });
+  });
+}
+
+function openNewProfileDialog() {
+  S.npLoader = S.loader || null;
+  S.npVer = S.ver || null;
+  S.npLoaderVersion = null;
+  S.npIcon = null;
+  $('npName').value = '';
+  $('npIconImg').src = 'assets/mark-icon.webp';
+  $('npIconLabel').textContent = 'Default logo';
+  $('npIconClear').style.display = 'none';
+  updateNpVersionUI();
+  $('newProfileOverlay').classList.add('open');
+  setTimeout(() => $('npName').focus(), 0);
+}
+
+function openVersionPickerForProfile() {
+  $('newProfileOverlay').classList.remove('open');
+  S.versionMode = 'newProfile';
+  show('versions');
+}
+
+async function createProfile() {
+  const name = $('npName').value.trim();
+  if (!name || !S.npVer) return;
+  $('npCreate').disabled = true;
+  $('npCreate').textContent = 'Creating...';
+  const p = await window.nexus.createProfile({ name, loader: S.npLoader, mcVersion: S.npVer, icon: S.npIcon });
+  $('npCreate').disabled = false;
+  $('npCreate').textContent = 'Create profile';
+  $('newProfileOverlay').classList.remove('open');
+  S.profiles = await window.nexus.getProfiles();
+  openProfile(p.id);
+}
+
+function startRename() {
+  const p = curProfile();
+  $('pName').style.display = 'none';
+  const inp = $('pRename');
+  inp.value = p.name;
+  inp.style.display = 'block';
+  inp.focus();
+  inp.select();
+}
+
+async function endRename(commit) {
+  const inp = $('pRename');
+  if (inp.style.display !== 'block') return;
+  const v = inp.value.trim();
+  inp.style.display = 'none';
+  $('pName').style.display = '';
+  const p = curProfile();
+  if (commit && v && v !== p.name) {
+    await window.nexus.renameProfile(p.id, v);
+    p.name = v;
+  }
+  renderProfile();
+  renderRail();
+}
+
+async function markLastPlayed(profileId) {
+  if (!S.settings || S.settings.lastPlayedProfileId === profileId) return;
+  const next = { ...S.settings, lastPlayedProfileId: profileId };
+  const r = await window.nexus.saveSettings(next);
+  S.settings = r.settings;
+}
+
+async function launchProfile(profileId, btn, defaultLabel) {
+  btn.disabled = true;
+  btn.textContent = 'Launching...';
+  const res = await window.nexus.launchGame(profileId);
+  if (!res.success) {
+    showNote(res.error || 'Launch failed. Check the Logs tab for details.');
+  } else {
+    showNote('Launch started — check the Logs tab if the game window takes a while to appear.');
+  }
+  btn.disabled = false;
+  btn.textContent = defaultLabel;
+}
+
+function onLaunch() {
+  if (S.booting) return;
+  if (!S.signedIn) { doLogin(); return; }
+  if (!S.ver) { show('versions'); return; }
+  const match = S.profiles.find((p) => p.loader === S.loader && p.mcVersion === S.ver);
+  if (!match) {
+    showNote('Create a profile for this version first.');
+    openNewProfileDialog();
+    return;
+  }
+  markLastPlayed(match.id).then(renderHome);
+  launchProfile(match.id, $('launch'), 'Launch');
+}
+
+async function openVersions() {
+  if (S.versionMode === 'newProfile') {
+    S.pl = S.npLoader || 'vanilla';
+    S.pv = S.npVer && S.npLoader === S.pl ? { id: S.npVer } : null;
+  } else {
+    S.pl = S.loader || 'vanilla';
+    S.pv = S.ver && S.loader === S.pl ? { id: S.ver } : null;
+  }
+  S.q = '';
+  $('filter').value = '';
+  loadList();
+}
+
+async function loadList() {
+  const loader = S.pl;
+  S.error = '';
+  if (!cache[loader]) {
+    S.loading = true;
+    renderVersions();
+    const res = await window.nexus.getLoaderVersions(loader);
+    if (res.success) cache[loader] = res.versions;
+    else if (S.pl === loader) S.error = res.error;
+    if (S.pl !== loader) return;
+    S.loading = false;
+  }
+  renderVersions();
+}
+
+function renderVersions() {
+  $('loaders').innerHTML = Object.keys(LOADERS).map((k) =>
+    '<button class="ld' + (k === S.pl ? ' on' : '') + '" data-l="' + k + '"><span class="ldico">' + LOADER_ICONS[k] + '</span><b>' + LOADERS[k] + '</b></button>'
+  ).join('');
+  $('loaders').querySelectorAll('.ld').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.l === S.pl) return;
+    S.pl = b.dataset.l;
+    if (S.versionMode === 'newProfile') {
+      S.pv = S.pl === S.npLoader && S.npVer ? { id: S.npVer } : null;
+    } else {
+      S.pv = S.pl === S.loader && S.ver ? { id: S.ver } : null;
+    }
+    loadList();
+  }));
+
+  const hasSnap = S.pl === 'vanilla' || S.pl === 'fabric';
+  $('snapWrap').style.visibility = hasSnap ? 'visible' : 'hidden';
+
+  const box = $('vlist');
+  if (S.loading) {
+    box.innerHTML = '<div class="vmsg">Loading versions...</div>';
+  } else if (S.error) {
+    box.innerHTML = '<div class="vmsg">' + S.error + '<button id="retry">Try again</button></div>';
+    $('retry').addEventListener('click', loadList);
+  } else {
+    const q = S.q.toLowerCase();
+    const list = (cache[S.pl] || []).filter((v) => (S.snap && hasSnap || v.type !== 'snapshot') && v.id.toLowerCase().includes(q));
+    if (!list.length) {
+      box.innerHTML = '<div class="vmsg">Nothing matches that filter.</div>';
+    } else {
+      box.innerHTML = list.map((v, i) =>
+        '<div class="vrow' + (S.pv && v.id === S.pv.id ? ' sel' : '') + '" data-i="' + i + '"><span class="vid">' + v.id + '</span>' +
+        '<span class="' + (v.type === 'snapshot' ? 'snapshot' : '') + '">' + (v.type === 'snapshot' ? 'Snapshot' : 'Release') + '</span>' +
+        '<span class="vbd">' + (v.loaderVersion || '-') + '</span></div>'
+      ).join('');
+      box.querySelectorAll('.vrow').forEach((r) => r.addEventListener('click', () => {
+        S.pv = list[+r.dataset.i];
+        renderVersions();
+      }));
+    }
+  }
+
+  $('picked').innerHTML = S.pv ? '<b>' + S.pv.id + '</b>' + LOADERS[S.pl] : 'Pick a version from the list';
+  $('vok').disabled = !S.pv;
+}
+
+function updateNpVersionUI() {
+  if (S.npVer) {
+    $('npGame').textContent = LOADERS[S.npLoader] + ' ' + S.npVer;
+  } else {
+    $('npGame').textContent = 'Choose a version';
+  }
+  $('npCreate').disabled = !S.npVer || !$('npName').value.trim();
+}
+
+async function confirmVersion() {
+  if (!S.pv) return;
+  if (S.versionMode === 'newProfile') {
+    S.npLoader = S.pl;
+    S.npVer = S.pv.id;
+    S.npLoaderVersion = S.pv.loaderVersion || null;
+    S.versionMode = 'home';
+    show('home');
+    updateNpVersionUI();
+    $('newProfileOverlay').classList.add('open');
+    return;
+  }
+  S.loader = S.pl;
+  S.ver = S.pv.id;
+  await window.nexus.setSelectedVersion({ loader: S.loader, mcVersion: S.ver, loaderVersion: S.pv.loaderVersion || null });
+  renderHome();
+  show('home');
+}
+
+function markDirty() {
+  $('state').textContent = 'Unsaved changes';
+  $('state').classList.add('dirty');
+}
+
+function paintRam() {
+  const r = $('ram');
+  const v = parseFloat(r.value);
+  const min = parseFloat(r.min);
+  const max = parseFloat(r.max);
+  $('ramVal').textContent = v.toFixed(1);
+  r.style.setProperty('--p', ((v - min) / (max - min)) * 100 + '%');
+}
+
+function paintRes() {
+  const w = parseInt($('rw').value) || 0;
+  const h = parseInt($('rh').value) || 0;
+  if (w > 0 && h > 0) {
+    const d = gcd(w, h);
+    $('ratio').textContent = w / d + ':' + h / d;
+  } else {
+    $('ratio').textContent = '';
+  }
+  $('seg').querySelectorAll('button').forEach((b) => b.classList.toggle('on', +b.dataset.w === w && +b.dataset.h === h));
+}
+
+function paintJava() {
+  const el = $('javaPath');
+  el.textContent = S.javaDraft || 'System default';
+  el.classList.toggle('placeholder', !S.javaDraft);
+}
+
+async function openSettings() {
+  const d = await window.nexus.getSettings();
+  S.settings = d.settings;
+  S.sys = { total: d.totalRamMB, free: d.freeRamMB };
+  const st = S.settings;
+
+  const max = Math.max(2, Math.round(S.sys.total / 1024));
+  const r = $('ram');
+  r.max = max;
+  r.value = Math.min(max, Math.max(0.5, st.ramMB / 1024));
+  $('ruler').style.setProperty('--span', max - 0.5);
+  const marks = [...new Set([0.5, Math.round(max * 0.25), Math.round(max * 0.5), Math.round(max * 0.75), max])];
+  $('rlabels').innerHTML = marks.map((m) => '<span>' + m + '</span>').join('');
+  $('ramFree').textContent = (S.sys.free / 1024).toFixed(1) + ' GB currently free';
+
+  $('rw').value = st.resolutionWidth;
+  $('rh').value = st.resolutionHeight;
+  setSwitch($('fsSw'), !!st.fullscreen);
+  $('fsTxt').textContent = st.fullscreen ? 'On' : 'Off';
+  S.javaDraft = st.javaPath || '';
+
+  paintRam();
+  paintRes();
+  paintJava();
+  $('state').textContent = 'All changes saved';
+  $('state').classList.remove('dirty');
+  renderHome();
+}
+
+async function saveSettings() {
+  const next = {
+    ...S.settings,
+    ramMB: Math.round(parseFloat($('ram').value) * 1024),
+    resolutionWidth: parseInt($('rw').value) || 1920,
+    resolutionHeight: parseInt($('rh').value) || 1080,
+    fullscreen: $('fsSw').classList.contains('on'),
+    javaPath: S.javaDraft
+  };
+  const r = await window.nexus.saveSettings(next);
+  S.settings = r.settings;
+  renderHome();
+  show('home');
+}
+
+function toggleFs() {
+  const on = !$('fsSw').classList.contains('on');
+  setSwitch($('fsSw'), on);
+  $('fsTxt').textContent = on ? 'On' : 'Off';
+  markDirty();
+}
+
+function toggleSnap() {
+  S.snap = !S.snap;
+  setSwitch($('snapSw'), S.snap);
+  renderVersions();
+}
+
+function onKey(el, fn) {
+  el.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); fn(); }
+  });
+}
+
+$('ram').addEventListener('input', () => { paintRam(); markDirty(); });
+$('rw').addEventListener('input', () => { paintRes(); markDirty(); });
+$('rh').addEventListener('input', () => { paintRes(); markDirty(); });
+$('seg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+  $('rw').value = b.dataset.w;
+  $('rh').value = b.dataset.h;
+  paintRes();
+  markDirty();
+}));
+$('fsSw').addEventListener('click', toggleFs);
+onKey($('fsSw'), toggleFs);
+$('snapSw').addEventListener('click', toggleSnap);
+onKey($('snapSw'), toggleSnap);
+$('filter').addEventListener('input', (e) => { S.q = e.target.value; renderVersions(); });
+
+$('javaDetect').addEventListener('click', async () => {
+  const res = await window.nexus.detectJava();
+  if (res.path) { S.javaDraft = res.path; paintJava(); markDirty(); }
+  else { $('state').textContent = 'No Java found. Use Browse to pick javaw.exe.'; $('state').classList.add('dirty'); }
+});
+$('javaBrowse').addEventListener('click', async () => {
+  const res = await window.nexus.browseJava();
+  if (res.path) { S.javaDraft = res.path; paintJava(); markDirty(); }
+});
+
+$('ssave').addEventListener('click', saveSettings);
+$('scancel').addEventListener('click', () => show('home'));
+$('closeSettings').addEventListener('click', () => show('home'));
+$('openSettings').addEventListener('click', () => show('settings'));
+$('change').addEventListener('click', () => show('versions'));
+$('vcancel').addEventListener('click', () => {
+  if (S.versionMode === 'newProfile') {
+    S.versionMode = 'home';
+    show('home');
+    $('newProfileOverlay').classList.add('open');
+    return;
+  }
+  show('home');
+});
+$('vok').addEventListener('click', confirmVersion);
+$('launch').addEventListener('click', onLaunch);
+$('signin').addEventListener('click', doLogin);
+
+$('acct').addEventListener('click', (e) => { e.stopPropagation(); $('menu').classList.toggle('open'); });
+document.addEventListener('click', () => $('menu').classList.remove('open'));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') show('home'); });
+
+$('rHome').addEventListener('click', () => show('home'));
+$('newProfileBtn').addEventListener('click', openNewProfileDialog);
+$('npClose').addEventListener('click', () => $('newProfileOverlay').classList.remove('open'));
+$('npCancel').addEventListener('click', () => $('newProfileOverlay').classList.remove('open'));
+$('npVersionBtn').addEventListener('click', openVersionPickerForProfile);
+$('npIconBtn').addEventListener('click', async () => {
+  const res = await window.nexus.pickProfileIcon();
+  if (res.error) { showNote(res.error); return; }
+  if (!res.dataUrl) return;
+  S.npIcon = res.dataUrl;
+  $('npIconImg').src = res.dataUrl;
+  $('npIconLabel').textContent = 'Custom icon';
+  $('npIconClear').style.display = 'block';
+});
+$('npIconClear').addEventListener('click', () => {
+  S.npIcon = null;
+  $('npIconImg').src = 'assets/mark-icon.webp';
+  $('npIconLabel').textContent = 'Default logo';
+  $('npIconClear').style.display = 'none';
+});
+$('npName').addEventListener('input', () => { $('npCreate').disabled = !S.npVer || !$('npName').value.trim(); });
+$('npName').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !$('npCreate').disabled) createProfile(); });
+$('npCreate').addEventListener('click', createProfile);
+
+$('pMore').addEventListener('click', (e) => { e.stopPropagation(); $('pMenu').classList.toggle('open'); });
+$('ptabs').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+  if (b.dataset.tab === S.profileTab) return;
+  S.profileTab = b.dataset.tab;
+  if (S.profileTab === 'files') S.filesPath = '';
+  renderProfile();
+}));
+document.addEventListener('click', () => $('pMenu').classList.remove('open'));
+$('mRename').addEventListener('click', startRename);
+$('mDelete').addEventListener('click', async () => {
+  const p = curProfile();
+  if (!p) return;
+  await window.nexus.deleteProfile(p.id);
+  S.curProfile = null;
+  S.profiles = await window.nexus.getProfiles();
+  show('home');
+});
+$('pRename').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') endRename(true);
+  if (e.key === 'Escape') { e.stopPropagation(); endRename(false); }
+});
+$('pRename').addEventListener('blur', () => endRename(true));
+$('pPlay').addEventListener('click', async () => {
+  const p = curProfile();
+  if (!p) return;
+  S.loader = p.loader;
+  S.ver = p.mcVersion;
+  await window.nexus.setSelectedVersion({ loader: p.loader, mcVersion: p.mcVersion, loaderVersion: null });
+  await markLastPlayed(p.id);
+  await launchProfile(p.id, $('pPlay'), 'Launch');
+});
+
+$('bBack').addEventListener('click', () => show('profile'));
+$('bq').addEventListener('input', (e) => {
+  S.browseQuery = e.target.value;
+  clearTimeout(browseDebounce);
+  browseDebounce = setTimeout(() => renderBrowse(true), 350);
+});
+
+window.nexus.onConsoleLog((line) => addConsoleLine(line));
+
+window.nexus.onUpdateReady((data) => {
+  const btn = $('updateBtn');
+  btn.style.display = '';
+  btn.title = 'Update ' + data.version + ' ready — click to restart and install';
+  btn.setAttribute('aria-label', btn.title);
+});
+$('updateBtn').addEventListener('click', () => {
+  window.nexus.installUpdate();
+});
+
+window.nexus.getSettings().then((d) => { S.settings = d.settings; renderHome(); });
+window.nexus.getSelectedVersion().then((sel) => {
+  if (sel && sel.mcVersion && LOADERS[sel.loader]) { S.loader = sel.loader; S.ver = sel.mcVersion; }
+  renderHome();
+});
+window.nexus.getProfiles().then((profiles) => { S.profiles = profiles; renderRail(); });
+window.nexus.checkLogin().then((r) => {
+  S.booting = false;
+  if (r.success) applyLogin(r);
+  else {
+    if (r.accounts) S.accounts = r.accounts;
+    renderTop();
+    renderHome();
+  }
+}).catch(() => {
+  S.booting = false;
+  renderTop();
+  renderHome();
+});
+
+renderTop();
+renderHome();
+renderRail();
+</script>
+</body>
+</html>
