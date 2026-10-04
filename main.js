@@ -362,17 +362,49 @@ function createWindow() {
   win.loadFile('index.html');
 }
 
+const updateLogPath = path.join(userDataPath, 'update-debug.log');
+
+function logUpdate(msg) {
+  const line = '[' + new Date().toISOString() + '] ' + msg;
+  console.log(line);
+  try {
+    fs.appendFileSync(updateLogPath, line + '\n', 'utf-8');
+  } catch (e) {
+    console.error('Could not write update log:', e);
+  }
+}
+
+logUpdate('App started. Current version: ' + app.getVersion());
+
+autoUpdater.on('checking-for-update', () => {
+  logUpdate('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  logUpdate('Update available: ' + info.version + ' (current: ' + app.getVersion() + ')');
+});
+
+autoUpdater.on('update-not-available', (info) => {
+  logUpdate('No update available. Latest on GitHub is: ' + (info && info.version ? info.version : 'unknown') + ' (current: ' + app.getVersion() + ')');
+});
+
+autoUpdater.on('download-progress', (p) => {
+  logUpdate('Downloading update: ' + Math.round(p.percent) + '%');
+});
+
 autoUpdater.on('update-downloaded', (info) => {
+  logUpdate('Update downloaded and ready: ' + info.version);
   if (mainWindowRef && !mainWindowRef.isDestroyed()) {
     mainWindowRef.webContents.send('update-ready', { version: info.version });
   }
 });
 
 autoUpdater.on('error', (err) => {
-  console.error('Auto-update error:', err);
+  logUpdate('ERROR: ' + (err && err.message ? err.message : String(err)));
 });
 
 ipcMain.handle('install-update', () => {
+  logUpdate('User clicked install — restarting to apply update.');
   autoUpdater.quitAndInstall();
 });
 
@@ -382,8 +414,9 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 
+  logUpdate('Calling checkForUpdates()...');
   autoUpdater.checkForUpdates().catch((err) => {
-    console.error('Auto-update check failed:', err);
+    logUpdate('checkForUpdates() rejected: ' + (err && err.message ? err.message : String(err)));
   });
 });
 

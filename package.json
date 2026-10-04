@@ -1,6 +1,6 @@
 {
   "name": "nexus-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Nexus Client - wlasny launcher do Minecrafta",
   "main": "main.js",
   "scripts": {
@@ -23,7 +23,7 @@
   "build": {
     "appId": "com.mrbambo.nexusclient",
     "productName": "Nexus Client",
-    "artifactName": "${productName} Setup.${ext}",
+    "artifactName": "Nexus-Client-Setup.${ext}",
     "win": {
       "icon": "assets/icon.ico",
       "target": "nsis"
