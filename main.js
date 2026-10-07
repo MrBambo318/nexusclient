@@ -177,12 +177,16 @@ async function fetchModrinthCategories() {
   return categoryCache;
 }
 
-async function modrinthListVersions(projectId, loader, mcVersion, type) {
-  let url = 'https://api.modrinth.com/v2/project/' + encodeURIComponent(projectId) + '/version?game_versions=' +
-    encodeURIComponent(JSON.stringify([mcVersion]));
-  if ((type === 'mod' || type === 'modpack') && loader && loader !== 'vanilla') {
-    url += '&loaders=' + encodeURIComponent(JSON.stringify([loader]));
+async function modrinthListVersions(projectId, loader, mcVersion, type, includeAllGameVersions) {
+  const params = [];
+  if (!includeAllGameVersions) {
+    params.push('game_versions=' + encodeURIComponent(JSON.stringify([mcVersion])));
   }
+  if ((type === 'mod' || type === 'modpack') && loader && loader !== 'vanilla') {
+    params.push('loaders=' + encodeURIComponent(JSON.stringify([loader])));
+  }
+  const url = 'https://api.modrinth.com/v2/project/' + encodeURIComponent(projectId) + '/version' +
+    (params.length ? '?' + params.join('&') : '');
   const res = await fetch(url, { headers: MODRINTH_HEADERS });
   if (!res.ok) throw new Error('Modrinth version lookup failed: ' + res.status);
   const versions = await res.json();
@@ -642,19 +646,24 @@ ipcMain.handle('get-item-versions', async (event, { profileId, itemId }) => {
   if (!item) return { success: false, error: 'Item not found.' };
 
   try {
-    const versions = await modrinthListVersions(item.projectId, profile.loader, profile.mcVersion, item.type);
+    const versions = await modrinthListVersions(item.projectId, profile.loader, profile.mcVersion, item.type, true);
     return {
       success: true,
       currentVersionId: item.versionId,
       loaderLabel: profile.loader,
       mcVersion: profile.mcVersion,
-      versions: versions.map(v => ({
-        id: v.id,
-        versionNumber: v.version_number,
-        versionType: v.version_type,
-        datePublished: v.date_published,
-        changelog: v.changelog || ''
-      }))
+      versions: versions.map(v => {
+        const gameVersions = Array.isArray(v.game_versions) ? v.game_versions : [];
+        return {
+          id: v.id,
+          versionNumber: v.version_number,
+          versionType: v.version_type,
+          datePublished: v.date_published,
+          changelog: v.changelog || '',
+          gameVersions,
+          compatible: gameVersions.includes(profile.mcVersion)
+        };
+      })
     };
   } catch (err) {
     console.error(err);
